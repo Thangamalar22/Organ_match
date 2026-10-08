@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      th:replace="~{fragments/layout :: layout(~{::title}, ~{::#page-content})}">
+<head>
+    <title>Recipients - OrganMatch</title>
+</head>
+<body>
+
+<div id="page-content">
+
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+        <div>
+            <h2 style="margin: 0; color: var(--primary);">Organ Recipient Candidates</h2>
+            <p style="margin: 0; color: var(--text-muted); font-size: 0.9rem;">
+                Showing registered organ recipients on the waiting list (<span th:text="${totalElements}">0</span> total)
+            </p>
+        </div>
+        <div sec:authorize="hasAnyRole('ADMIN', 'HOSPITAL')">
+            <a th:href="@{/recipients/new}" class="btn btn-primary">➕ Register Recipient</a>
+        </div>
+    </div>
+
+    <!-- Filter & Search Bar -->
+    <div class="card" style="padding: 1rem; margin-bottom: 1.5rem;">
+        <form th:action="@{/recipients}" method="get" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)) 120px 100px; gap: 0.75rem; align-items: end;">
+            <div>
+                <label for="organ" style="font-size: 0.8rem; margin-bottom: 0.2rem;">Needed Organ</label>
+                <select id="organ" name="organ">
+                    <option value="">All Organs</option>
+                    <option th:each="o : ${allOrgans}" th:value="${o}" th:text="${o}" th:selected="${o == selectedOrgan}"></option>
+                </select>
+            </div>
+            <div>
+                <label for="bloodGroup" style="font-size: 0.8rem; margin-bottom: 0.2rem;">Blood Group</label>
+                <select id="bloodGroup" name="bloodGroup">
+                    <option value="">All Blood Groups</option>
+                    <option th:each="bg : ${allBloodGroups}" th:value="${bg}" th:text="${bg}" th:selected="${bg == selectedBloodGroup}"></option>
+                </select>
+            </div>
+            <div>
+                <label for="city" style="font-size: 0.8rem; margin-bottom: 0.2rem;">City</label>
+                <select id="city" name="city">
+                    <option value="">All Cities</option>
+                    <option th:each="c : ${allCities}" th:value="${c}" th:text="${c}" th:selected="${c == selectedCity}"></option>
+                </select>
+            </div>
+            <div>
+                <label for="search" style="font-size: 0.8rem; margin-bottom: 0.2rem;">Search</label>
+                <input type="text" id="search" name="search" th:value="${search}" placeholder="ID or Name">
+            </div>
+            <div>
+                <button type="submit" class="btn btn-primary" style="width: 100%;">Filter</button>
+            </div>
+            <div>
+                <a th:href="@{/recipients}" class="btn btn-secondary" style="width: 100%; text-align: center; box-sizing: border-box;">Reset</a>
+            </div>
+        </form>
+    </div>
+
+    <!-- Recipients Table -->
+    <div class="card" style="padding: 0; overflow-x: auto;">
+        <table style="margin: 0; border: none;">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Name</th>
+                    <th>Organ Needed</th>
+                    <th>Blood Group</th>
+                    <th>Age / Weight</th>
+                    <th>City</th>
+                    <th>Urgency</th>
+                    <th>Waiting Days</th>
+                    <th>Hospital</th>
+                    <th>Medical Status</th>
+                    <th sec:authorize="hasAnyRole('ADMIN', 'HOSPITAL')" style="text-align: center;">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:if="${#lists.isEmpty(recipients)}">
+                    <td colspan="11" style="text-align: center; color: var(--text-muted); padding: 2rem;">
+                        No recipient candidates found matching the selected criteria.
+                    </td>
+                </tr>
+                <tr th:each="r : ${recipients}">
+                    <td><strong th:text="${r.id}">R101</strong></td>
+                    <td th:text="${r.name}">John Doe</td>
+                    <td><span class="badge badge-info" th:text="${r.neededOrgan}">KIDNEY</span></td>
+                    <td><strong th:text="${r.bloodGroup}">O</strong></td>
+                    <td th:text="${r.age + ' yrs / ' + r.weightKg + ' kg'}">45 yrs / 70 kg</td>
+                    <td th:text="${r.city}">CHENNAI</td>
+                    <td><span class="badge badge-warning" th:text="${'Urgency ' + r.urgency}">Urgency 8</span></td>
+                    <td th:text="${r.waitingDays + ' days'}">120 days</td>
+                    <td th:text="${r.hospitalName != null ? r.hospitalName : '-'}">Apollo Chennai</td>
+                    <td>
+                        <span th:if="${r.medicallyFit}" class="badge badge-success">Fit</span>
+                        <span th:unless="${r.medicallyFit}" class="badge badge-danger">Unfit</span>
+                        <span th:if="${r.crossmatchPositive}" class="badge badge-danger" title="Positive Crossmatch">XM+</span>
+                    </td>
+                    <td sec:authorize="hasAnyRole('ADMIN', 'HOSPITAL')" style="text-align: center; white-space: nowrap;">
+                        <div th:if="${currentUserRole == 'ADMIN' or r.hospitalName == userHospitalName}" style="display: flex; gap: 0.5rem; justify-content: center;">
+                            <a th:href="@{/recipients/{id}/edit(id=${r.id})}" class="btn btn-outline" style="padding: 0.25rem 0.5rem; font-size: 0.8rem;">Edit</a>
+                            <form th:action="@{/recipients/{id}/delete(id=${r.id})}" method="post" style="display: inline; margin: 0;"
+                                  th:onsubmit="return confirm('Are you sure you want to delete recipient ' + [[${r.id}]] + '?');">
+                                <button type="submit" class="btn btn-danger" style="padding: 0.25rem 0.5rem; font-size: 0.8rem;">Delete</button>
+                            </form>
+                        </div>
+                        <span th:unless="${currentUserRole == 'ADMIN' or r.hospitalName == userHospitalName}" style="color: var(--text-muted); font-size: 0.8rem;">View Only</span>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Pagination Controls -->
+    <div th:if="${totalPages > 1}" style="display: flex; justify-content: space-between; align-items: center; margin-top: 1rem;">
+        <div style="font-size: 0.85rem; color: var(--text-muted);">
+            Page <strong th:text="${currentPage + 1}">1</strong> of <strong th:text="${totalPages}">10</strong>
+        </div>
+        <div style="display: flex; gap: 0.5rem;">
+            <a th:if="${currentPage > 0}"
+               th:href="@{/recipients(page=${currentPage - 1}, organ=${selectedOrgan}, bloodGroup=${selectedBloodGroup}, city=${selectedCity}, search=${search})}"
+               class="btn btn-outline" style="padding: 0.4rem 0.8rem;">&laquo; Previous</a>
+
+            <a th:if="${currentPage + 1 < totalPages}"
+               th:href="@{/recipients(page=${currentPage + 1}, organ=${selectedOrgan}, bloodGroup=${selectedBloodGroup}, city=${selectedCity}, search=${search})}"
+               class="btn btn-outline" style="padding: 0.4rem 0.8rem;">Next &raquo;</a>
+        </div>
+    </div>
+
+</div>
+
+</body>
+</html>

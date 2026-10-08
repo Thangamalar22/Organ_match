@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      th:fragment="layout(title, content)">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="_csrf" th:content="${_csrf != null ? _csrf.token : ''}"/>
+    <meta name="_csrf_header" th:content="${_csrf != null ? _csrf.headerName : ''}"/>
+    <title th:replace="${title}">OrganMatch</title>
+    <link rel="stylesheet" th:href="@{/css/app.css}">
+</head>
+<body>
+
+<!-- Top Navigation Bar -->
+<nav class="navbar">
+    <div style="display: flex; align-items: center; gap: 2rem;">
+        <a th:href="@{/dashboard}" class="navbar-brand">🫀 OrganMatch</a>
+
+        <ul class="navbar-nav">
+            <li sec:authorize="isAuthenticated()">
+                <a class="nav-link" th:href="@{/dashboard}">Dashboard</a>
+            </li>
+            <li sec:authorize="hasAnyRole('ADMIN', 'COORDINATOR', 'HOSPITAL')">
+                <a class="nav-link" th:href="@{/recipients}">Recipients</a>
+            </li>
+            <li sec:authorize="hasAnyRole('ADMIN', 'COORDINATOR', 'HOSPITAL')">
+                <a class="nav-link" th:href="@{/donors}">Donors</a>
+            </li>
+            <li sec:authorize="hasAnyRole('ADMIN', 'COORDINATOR')">
+                <a class="nav-link" th:href="@{/match}">Run Matching</a>
+            </li>
+            <li sec:authorize="hasAnyRole('ADMIN', 'COORDINATOR')">
+                <a class="nav-link" th:href="@{/history}">History</a>
+            </li>
+            <li sec:authorize="hasAnyRole('ADMIN', 'COORDINATOR')">
+                <a class="nav-link" th:href="@{/experiments}">Experiments</a>
+            </li>
+            <li sec:authorize="hasRole('ADMIN')">
+                <a class="nav-link" th:href="@{/admin/users}">Users</a>
+            </li>
+        </ul>
+    </div>
+
+    <!-- User Profile & Logout -->
+    <div class="user-section" sec:authorize="isAuthenticated()">
+        <span style="font-weight: 600;" sec:authentication="name">User</span>
+        <span class="role-badge" sec:authentication="principal.authorities">ROLE</span>
+        <a class="nav-link" th:href="@{/profile}">Profile</a>
+
+        <form th:action="@{/logout}" method="post" style="margin: 0; display: inline;">
+            <input type="hidden" th:if="${_csrf != null}" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+            <button type="submit" class="btn btn-danger" style="padding: 0.3rem 0.75rem; font-size: 0.8rem;">Logout</button>
+        </form>
+    </div>
+</nav>
+
+<!-- Main Page Container -->
+<main class="main-content">
+    <!-- Global Alert Banners -->
+    <div th:if="${success}" class="alert alert-success">
+        <span>✅</span> <span th:text="${success}">Success message</span>
+    </div>
+    <div th:if="${error}" class="alert alert-danger">
+        <span>⚠️</span> <span th:text="${error}">Error message</span>
+    </div>
+
+    <!-- Page Body Insertion Point -->
+    <div th:replace="${content}">
+        Page content goes here...
+    </div>
+</main>
+
+<!-- Footer -->
+<footer class="footer">
+    <p>Synthetic data. Decision-support simulation only.</p>
+</footer>
+
+</body>
+</html>

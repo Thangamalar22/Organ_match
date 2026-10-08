@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      th:replace="~{fragments/layout :: layout(~{::title}, ~{::#page-content})}">
+<head>
+    <title th:text="${donorForm.id != null ? 'Edit Donor - OrganMatch' : 'Register Donor - OrganMatch'}">Donor Form</title>
+    <style>
+        .field-error {
+            color: #dc2626;
+            font-size: 0.8rem;
+            margin-top: 0.25rem;
+            display: block;
+            font-weight: 500;
+        }
+    </style>
+</head>
+<body>
+
+<div id="page-content" style="max-width: 800px; margin: 0 auto;">
+
+    <div class="card">
+        <h2 th:text="${donorForm.id != null ? 'Edit Donor (' + donorForm.id + ')' : 'Register New Organ Donor'}">Register Donor</h2>
+
+        <form th:action="@{/donors/save}" th:object="${donorForm}" method="post">
+            <input type="hidden" th:field="*{id}"/>
+
+            <!-- Blood Group & City Grid -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                <div class="form-group">
+                    <label for="bloodGroup">Blood Group *</label>
+                    <select id="bloodGroup" th:field="*{bloodGroup}" required>
+                        <option value="">Select Blood Group</option>
+                        <option th:each="bg : ${allBloodGroups}" th:value="${bg}" th:text="${bg}"></option>
+                    </select>
+                    <span class="field-error" th:if="${#fields.hasErrors('bloodGroup')}" th:errors="*{bloodGroup}"></span>
+                </div>
+
+                <div class="form-group">
+                    <label for="city">Donor City Location *</label>
+                    <select id="city" th:field="*{city}" required>
+                        <option value="">Select City</option>
+                        <option th:each="c : ${allCities}" th:value="${c}" th:text="${c}"></option>
+                    </select>
+                    <span class="field-error" th:if="${#fields.hasErrors('city')}" th:errors="*{city}"></span>
+                </div>
+            </div>
+
+            <!-- Age & Weight Grid -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                <div class="form-group">
+                    <label for="age">Age (Years: 0 - 100) *</label>
+                    <input type="number" id="age" th:field="*{age}" min="0" max="100" required>
+                    <span class="field-error" th:if="${#fields.hasErrors('age')}" th:errors="*{age}"></span>
+                </div>
+
+                <div class="form-group">
+                    <label for="weightKg">Weight (kg: 2.0 - 200.0) *</label>
+                    <input type="number" step="0.1" id="weightKg" th:field="*{weightKg}" min="2.0" max="200.0" required>
+                    <span class="field-error" th:if="${#fields.hasErrors('weightKg')}" th:errors="*{weightKg}"></span>
+                </div>
+            </div>
+
+            <!-- Hospital Name -->
+            <div class="form-group">
+                <label for="hospitalName">Hospital Name</label>
+                <input type="text" id="hospitalName" th:field="*{hospitalName}" th:readonly="${isHospitalUser}" placeholder="Hospital Name">
+                <span class="field-error" th:if="${#fields.hasErrors('hospitalName')}" th:errors="*{hospitalName}"></span>
+            </div>
+
+            <!-- HLA Antigens Section -->
+            <div style="background: #f8fafc; border: 1px solid var(--border); border-radius: 6px; padding: 1rem; margin-bottom: 1.25rem;">
+                <label style="margin-bottom: 0.5rem; color: var(--accent);">HLA Antigens Profile (6 Loci: 1 - 10) *</label>
+                <div style="display: grid; grid-template-columns: repeat(6, 1fr); gap: 0.5rem;">
+                    <div>
+                        <label for="hla1" style="font-size: 0.75rem; text-align: center;">HLA-1</label>
+                        <input type="number" id="hla1" th:field="*{hla1}" min="1" max="10" required style="text-align: center;">
+                        <span class="field-error" th:if="${#fields.hasErrors('hla1')}" th:errors="*{hla1}"></span>
+                    </div>
+                    <div>
+                        <label for="hla2" style="font-size: 0.75rem; text-align: center;">HLA-2</label>
+                        <input type="number" id="hla2" th:field="*{hla2}" min="1" max="10" required style="text-align: center;">
+                        <span class="field-error" th:if="${#fields.hasErrors('hla2')}" th:errors="*{hla2}"></span>
+                    </div>
+                    <div>
+                        <label for="hla3" style="font-size: 0.75rem; text-align: center;">HLA-3</label>
+                        <input type="number" id="hla3" th:field="*{hla3}" min="1" max="10" required style="text-align: center;">
+                        <span class="field-error" th:if="${#fields.hasErrors('hla3')}" th:errors="*{hla3}"></span>
+                    </div>
+                    <div>
+                        <label for="hla4" style="font-size: 0.75rem; text-align: center;">HLA-4</label>
+                        <input type="number" id="hla4" th:field="*{hla4}" min="1" max="10" required style="text-align: center;">
+                        <span class="field-error" th:if="${#fields.hasErrors('hla4')}" th:errors="*{hla4}"></span>
+                    </div>
+                    <div>
+                        <label for="hla5" style="font-size: 0.75rem; text-align: center;">HLA-5</label>
+                        <input type="number" id="hla5" th:field="*{hla5}" min="1" max="10" required style="text-align: center;">
+                        <span class="field-error" th:if="${#fields.hasErrors('hla5')}" th:errors="*{hla5}"></span>
+                    </div>
+                    <div>
+                        <label for="hla6" style="font-size: 0.75rem; text-align: center;">HLA-6</label>
+                        <input type="number" id="hla6" th:field="*{hla6}" min="1" max="10" required style="text-align: center;">
+                        <span class="field-error" th:if="${#fields.hasErrors('hla6')}" th:errors="*{hla6}"></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Available Organs Section -->
+            <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 6px; padding: 1.25rem; margin-bottom: 1.5rem;">
+                <label style="margin-bottom: 0.75rem; color: #166534; font-weight: 700;">Available Organs for Allocation</label>
+
+                <!-- Kidney Count -->
+                <div class="form-group" style="max-width: 250px; margin-bottom: 1rem;">
+                    <label for="kidneyCount">Available Kidneys (0, 1, or 2) *</label>
+                    <input type="number" id="kidneyCount" th:field="*{kidneyCount}" min="0" max="2" required>
+                    <span class="field-error" th:if="${#fields.hasErrors('kidneyCount')}" th:errors="*{kidneyCount}"></span>
+                </div>
+
+                <!-- Other Organs Checkboxes -->
+                <label style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.5rem; display: block;">Select Other Available Organs:</label>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 0.75rem;">
+                    <div th:each="organ : ${nonKidneyOrgans}">
+                        <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer; font-weight: 500;">
+                            <input type="checkbox" th:field="*{otherOrgans}" th:value="${organ}" style="width: auto;">
+                            <span th:text="${organ}">LIVER</span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Form Action Buttons -->
+            <div style="display: flex; justify-content: flex-end; gap: 1rem; border-top: 1px solid var(--border); padding-top: 1rem;">
+                <a th:href="@{/donors}" class="btn btn-secondary">Cancel</a>
+                <button type="submit" class="btn btn-accent">Save Donor</button>
+            </div>
+        </form>
+    </div>
+
+</div>
+
+</body>
+</html>

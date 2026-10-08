@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OrganMatch - Sign In</title>
+    <link rel="stylesheet" th:href="@{/css/app.css}">
+    <style>
+        body {
+            background-color: #f1f5f9;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+
+        .login-card {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 2.5rem;
+            width: 100%;
+            max-width: 400px;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+        }
+
+        .logo-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .logo-icon {
+            font-size: 3rem;
+            line-height: 1;
+        }
+
+        .logo-title {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin: 0.5rem 0 0.25rem 0;
+        }
+
+        .logo-subtitle {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin: 0;
+        }
+
+        .demo-box {
+            background: #f8fafc;
+            border: 1px dashed #cbd5e1;
+            border-radius: 6px;
+            padding: 0.75rem 1rem;
+            margin-top: 1.5rem;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        .demo-box ul {
+            margin: 0.35rem 0 0.35rem 1.25rem;
+            padding: 0;
+        }
+    </style>
+</head>
+<body>
+
+<div class="login-card">
+    <div class="logo-header">
+        <div class="logo-icon">🫀</div>
+        <h1 class="logo-title">OrganMatch</h1>
+        <p class="logo-subtitle">Multi-Organ Donor-Recipient Matching</p>
+    </div>
+
+    <!-- Alert Messages -->
+    <div th:if="${param.error}" class="alert alert-danger">
+        Invalid username or password. Please try again.
+    </div>
+    <div th:if="${param.logout}" class="alert alert-success">
+        You have successfully signed out.
+    </div>
+
+    <form th:action="@{/login}" method="post">
+        <input type="hidden" th:if="${_csrf != null}" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+
+        <div class="form-group">
+            <label for="username">Username</label>
+            <input type="text" id="username" name="username" required placeholder="Enter username" autofocus>
+        </div>
+
+        <div class="form-group">
+            <label for="password">Password</label>
+            <input type="password" id="password" name="password" required placeholder="Enter password">
+        </div>
+
+        <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 0.5rem; padding: 0.75rem;">Sign In</button>
+    </form>
+
+    <!-- Demo Accounts Box -->
+    <div class="demo-box">
+        <strong>Demo Accounts (Seeded):</strong>
+        <ul>
+            <li><code>admin</code> (Role: ADMIN)</li>
+            <li><code>coord1</code> (Role: COORDINATOR)</li>
+            <li><code>hospital1</code> (Role: HOSPITAL - Apollo Chennai)</li>
+            <li><code>hospital2</code> (Role: HOSPITAL - AIIMS Delhi)</li>
+        </ul>
+        <span style="font-style: italic;">Note: See README for passwords.</span>
+    </div>
+</div>
+
+</body>
+</html>

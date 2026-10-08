@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>403 - Access Denied</title>
+    <link rel="stylesheet" th:href="@{/css/app.css}">
+    <style>
+        body {
+            background-color: #fff1f2;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+        .error-card {
+            background: white;
+            border: 1px solid #fecdd3;
+            border-radius: 12px;
+            padding: 3rem 2rem;
+            max-width: 450px;
+            text-align: center;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
+        }
+        .error-code { font-size: 4rem; font-weight: 800; color: #e11d48; margin: 0; line-height: 1; }
+        .error-title { font-size: 1.5rem; color: #9f1239; margin: 0.5rem 0 1rem 0; }
+        .error-desc { color: var(--text-muted); font-size: 0.95rem; margin-bottom: 2rem; }
+    </style>
+</head>
+<body>
+
+<div class="error-card">
+    <div class="error-code">403</div>
+    <h2 class="error-title">Access Denied</h2>
+    <p class="error-desc">You do not have administrative permissions to view or access this requested page.</p>
+    <a th:href="@{/dashboard}" class="btn btn-primary">Back to Dashboard</a>
+</div>
+
+</body>
+</html>

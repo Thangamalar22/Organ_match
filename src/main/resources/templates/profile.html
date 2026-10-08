@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      th:replace="~{fragments/layout :: layout(~{::title}, ~{::#page-content})}">
+<head>
+    <title>My Profile - OrganMatch</title>
+    <style>
+        .field-error {
+            color: #dc2626;
+            font-size: 0.8rem;
+            margin-top: 0.25rem;
+            display: block;
+            font-weight: 500;
+        }
+    </style>
+</head>
+<body>
+
+<div id="page-content" style="max-width: 750px; margin: 0 auto;">
+
+    <div style="margin-bottom: 1.5rem;">
+        <h2 style="margin: 0; color: var(--primary);">User Profile & Security Settings</h2>
+        <p style="margin: 0; color: var(--text-muted); font-size: 0.9rem;">
+            View your system profile details and manage your account password.
+        </p>
+    </div>
+
+    <!-- User Information Card -->
+    <div class="card" style="margin-bottom: 1.5rem;">
+        <h2 style="margin-top: 0;">Account Information</h2>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; background: #f8fafc; padding: 1.25rem; border-radius: 6px;">
+            <div>
+                <div style="font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted); font-weight: 600;">Username</div>
+                <div style="font-size: 1.1rem; font-weight: 700; color: var(--primary);" th:text="${user.username}">username</div>
+            </div>
+            <div>
+                <div style="font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted); font-weight: 600;">Full Name</div>
+                <div style="font-size: 1.1rem; font-weight: 700;" th:text="${user.fullName}">Full Name</div>
+            </div>
+            <div>
+                <div style="font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted); font-weight: 600;">System Role</div>
+                <div style="margin-top: 0.2rem;">
+                    <span class="badge badge-info" th:text="${user.role}">ADMIN</span>
+                </div>
+            </div>
+            <div>
+                <div style="font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted); font-weight: 600;">Hospital Affiliation</div>
+                <div style="font-size: 1rem; font-weight: 600;" th:text="${user.hospitalName != null ? user.hospitalName : 'System Wide / N/A'}">Apollo Chennai</div>
+            </div>
+            <div>
+                <div style="font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted); font-weight: 600;">Account Created</div>
+                <div style="font-size: 0.95rem; font-weight: 500;" th:text="${user.createdAt != null ? #temporals.format(user.createdAt, 'yyyy-MM-dd HH:mm') : '-'}">2026-10-07</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Change Password Card -->
+    <div class="card">
+        <h2 style="margin-top: 0;">Change Password</h2>
+
+        <form th:action="@{/profile/change-password}" th:object="${passwordForm}" method="post">
+
+            <!-- Current Password -->
+            <div class="form-group">
+                <label for="currentPassword">Current Password *</label>
+                <input type="password" id="currentPassword" th:field="*{currentPassword}" required>
+                <span class="field-error" th:if="${#fields.hasErrors('currentPassword')}" th:errors="*{currentPassword}"></span>
+            </div>
+
+            <!-- New Password & Confirm Password Grid -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                <div class="form-group">
+                    <label for="newPassword">New Password (Min 8 characters) *</label>
+                    <input type="password" id="newPassword" th:field="*{newPassword}" minlength="8" required>
+                    <span class="field-error" th:if="${#fields.hasErrors('newPassword')}" th:errors="*{newPassword}"></span>
+                </div>
+
+                <div class="form-group">
+                    <label for="confirmPassword">Confirm New Password *</label>
+                    <input type="password" id="confirmPassword" th:field="*{confirmPassword}" minlength="8" required>
+                    <span class="field-error" th:if="${#fields.hasErrors('confirmPassword')}" th:errors="*{confirmPassword}"></span>
+                </div>
+            </div>
+
+            <div style="display: flex; justify-content: flex-end; margin-top: 1rem;">
+                <button type="submit" class="btn btn-primary">Update Password</button>
+            </div>
+        </form>
+    </div>
+
+</div>
+
+</body>
+</html>

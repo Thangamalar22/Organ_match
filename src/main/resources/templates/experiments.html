@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/layout :: layout(~{::title}, ~{::#page-content})}">
+<head>
+    <title>CSP Benchmark Experiments - Multi-Organ Donor Matching</title>
+</head>
+<body>
+
+<div id="page-content">
+
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+        <h2>CSP Algorithm Performance Benchmark</h2>
+        <a th:href="@{/api/experiments/csv}" class="btn btn-accent">📥 Download CSV Report</a>
+    </div>
+
+    <!-- Benchmark Parameters Summary -->
+    <div class="card">
+        <h2>Experiment Overview</h2>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 1rem;">
+            <div style="background: #f8fafc; border: 1px solid var(--border); padding: 1rem; border-radius: 6px; text-align: center;">
+                <div style="font-size: 1.6rem; font-weight: 700; color: var(--primary);" th:text="${summary.donorCount}">50</div>
+                <div style="font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase;">Donors Tested</div>
+            </div>
+            <div style="background: #f8fafc; border: 1px solid var(--border); padding: 1rem; border-radius: 6px; text-align: center;">
+                <div style="font-size: 1.6rem; font-weight: 700; color: var(--primary);" th:text="${summary.recipientCount}">500</div>
+                <div style="font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase;">Recipients Pool</div>
+            </div>
+            <div style="background: #f8fafc; border: 1px solid var(--border); padding: 1rem; border-radius: 6px; text-align: center;">
+                <div style="font-size: 1.6rem; font-weight: 700; color: var(--primary);" th:text="${'+' + summary.utilityGainPercentage + '%'}">+71.2%</div>
+                <div style="font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase;">CSP Utility Gain</div>
+            </div>
+            <div style="background: #f8fafc; border: 1px solid var(--border); padding: 1rem; border-radius: 6px; text-align: center;">
+                <div style="font-size: 1.6rem; font-weight: 700; color: var(--primary);" th:text="${summary.totalRunTimeMillis + ' ms'}">1250 ms</div>
+                <div style="font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase;">Total Run Time</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Configuration Comparison Table -->
+    <div class="card">
+        <h2>CSP Solver Feature Configurations (Average per Donor)</h2>
+        <p style="font-size: 0.85rem; color: var(--text-muted);">
+            Evaluated across 50 random donors. Plain backtracking includes a safety node expansion limit (50,000 nodes).
+        </p>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Solver Configuration</th>
+                    <th>Avg Nodes Expanded</th>
+                    <th>Avg Backtracks</th>
+                    <th>Avg Time (ms)</th>
+                    <th>Avg Total Utility</th>
+                    <th>Avg Organs Assigned</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:each="cfg : ${summary.configResults}">
+                    <td><strong th:text="${cfg.configName}">A) Plain Backtracking</strong></td>
+                    <td th:text="${cfg.avgNodesExpanded}">120.5</td>
+                    <td th:text="${cfg.avgBacktracks}">15.2</td>
+                    <td th:text="${cfg.avgTimeMillis + ' ms'}">2.5 ms</td>
+                    <td th:text="${cfg.avgTotalUtility}">2.64</td>
+                    <td th:text="${cfg.avgOrgansAssigned}">3.8</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Optimization Quality: CSP vs Greedy Baseline -->
+    <div class="card">
+        <h2>Solution Quality: Full CSP (Config D) vs Greedy Baseline</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Metric</th>
+                    <th>CSP Solver (Config D)</th>
+                    <th>Greedy Baseline</th>
+                    <th>Improvement / Delta</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>Average Total Utility per Donor</strong></td>
+                    <td th:text="${summary.cspAvgUtility}">2.646</td>
+                    <td th:text="${summary.greedyAvgUtility}">1.545</td>
+                    <td><strong style="color: var(--success);" th:text="${'+' + summary.utilityGainPercentage + '% Utility Gain'}">+71.26% Utility Gain</strong></td>
+                </tr>
+                <tr>
+                    <td><strong>Average Organs Assigned per Donor</strong></td>
+                    <td th:text="${summary.cspAvgAssignedOrgans}">4.2</td>
+                    <td th:text="${summary.greedyAvgAssignedOrgans}">3.1</td>
+                    <td th:text="${(summary.cspAvgAssignedOrgans - summary.greedyAvgAssignedOrgans) >= 0 ? '+' + #numbers.formatDecimal(summary.cspAvgAssignedOrgans - summary.greedyAvgAssignedOrgans, 1, 1) : #numbers.formatDecimal(summary.cspAvgAssignedOrgans - summary.greedyAvgAssignedOrgans, 1, 1)}">+1.1 organs</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+</div>
+
+</body>
+</html>

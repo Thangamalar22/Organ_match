@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      th:replace="~{fragments/layout :: layout(~{::title}, ~{::#page-content})}">
+<head>
+    <title>Create User - OrganMatch</title>
+    <style>
+        .field-error {
+            color: #dc2626;
+            font-size: 0.8rem;
+            margin-top: 0.25rem;
+            display: block;
+            font-weight: 500;
+        }
+    </style>
+</head>
+<body>
+
+<div id="page-content" style="max-width: 650px; margin: 0 auto;">
+
+    <div class="card">
+        <h2>Create New User Account</h2>
+
+        <form th:action="@{/admin/users/save}" th:object="${userForm}" method="post">
+
+            <!-- Username -->
+            <div class="form-group">
+                <label for="username">Username (Unique) *</label>
+                <input type="text" id="username" th:field="*{username}" placeholder="e.g. hospital3" required>
+                <span class="field-error" th:if="${#fields.hasErrors('username')}" th:errors="*{username}"></span>
+            </div>
+
+            <!-- Full Name -->
+            <div class="form-group">
+                <label for="fullName">Full Name *</label>
+                <input type="text" id="fullName" th:field="*{fullName}" placeholder="e.g. Dr. Sarah Jenkins" required>
+                <span class="field-error" th:if="${#fields.hasErrors('fullName')}" th:errors="*{fullName}"></span>
+            </div>
+
+            <!-- Role & Hospital Grid -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                <div class="form-group">
+                    <label for="role">User Role *</label>
+                    <select id="role" th:field="*{role}" onchange="toggleHospitalInput()" required>
+                        <option value="">Select Role</option>
+                        <option th:each="r : ${allRoles}" th:value="${r}" th:text="${r}"></option>
+                    </select>
+                    <span class="field-error" th:if="${#fields.hasErrors('role')}" th:errors="*{role}"></span>
+                </div>
+
+                <div class="form-group" id="hospital-group">
+                    <label for="hospitalName">Hospital Name <span id="hosp-req" style="display: none; color: #dc2626;">*</span></label>
+                    <input type="text" id="hospitalName" th:field="*{hospitalName}" placeholder="e.g. Manipal Hospital">
+                    <span class="field-error" th:if="${#fields.hasErrors('hospitalName')}" th:errors="*{hospitalName}"></span>
+                </div>
+            </div>
+
+            <!-- Initial Password -->
+            <div class="form-group">
+                <label for="password">Initial Password (Min 8 characters) *</label>
+                <input type="password" id="password" th:field="*{password}" minlength="8" placeholder="At least 8 characters" required>
+                <span class="field-error" th:if="${#fields.hasErrors('password')}" th:errors="*{password}"></span>
+            </div>
+
+            <!-- Form Action Buttons -->
+            <div style="display: flex; justify-content: flex-end; gap: 1rem; border-top: 1px solid var(--border); padding-top: 1rem; margin-top: 1.5rem;">
+                <a th:href="@{/admin/users}" class="btn btn-secondary">Cancel</a>
+                <button type="submit" class="btn btn-primary">Create User Account</button>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        function toggleHospitalInput() {
+            const roleSelect = document.getElementById('role');
+            const hospReq = document.getElementById('hosp-req');
+            const hospInput = document.getElementById('hospitalName');
+
+            if (roleSelect && roleSelect.value === 'HOSPITAL') {
+                if (hospReq) hospReq.style.display = 'inline';
+                if (hospInput) hospInput.required = true;
+            } else {
+                if (hospReq) hospReq.style.display = 'none';
+                if (hospInput) hospInput.required = false;
+            }
+        }
+        document.addEventListener("DOMContentLoaded", toggleHospitalInput);
+    </script>
+
+</div>
+
+</body>
+</html>

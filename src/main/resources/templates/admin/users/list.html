@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      th:replace="~{fragments/layout :: layout(~{::title}, ~{::#page-content})}">
+<head>
+    <title>User Management - OrganMatch</title>
+</head>
+<body>
+
+<div id="page-content">
+
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+        <div>
+            <h2 style="margin: 0; color: var(--primary);">System User Management</h2>
+            <p style="margin: 0; color: var(--text-muted); font-size: 0.9rem;">
+                Manage application user accounts, system access roles, and status controls.
+            </p>
+        </div>
+        <div>
+            <a th:href="@{/admin/users/new}" class="btn btn-primary">➕ Create New User</a>
+        </div>
+    </div>
+
+    <!-- User Accounts Table -->
+    <div class="card" style="padding: 0; overflow-x: auto;">
+        <table style="margin: 0; border: none;">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Username</th>
+                    <th>Full Name</th>
+                    <th>Role</th>
+                    <th>Hospital Name</th>
+                    <th>Status</th>
+                    <th>Date Created</th>
+                    <th style="text-align: center;">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:each="u : ${users}">
+                    <td><strong th:text="${'#' + u.id}">#1</strong></td>
+                    <td>
+                        <strong th:text="${u.username}">admin</strong>
+                        <span th:if="${u.username == currentUsername}" class="badge badge-info" style="margin-left: 0.25rem;">(You)</span>
+                    </td>
+                    <td th:text="${u.fullName}">Admin User</td>
+                    <td>
+                        <span class="badge" th:classappend="${u.role.name() == 'ADMIN' ? 'badge-info' : (u.role.name() == 'COORDINATOR' ? 'badge-warning' : 'badge-success')}" th:text="${u.role}">ADMIN</span>
+                    </td>
+                    <td th:text="${u.hospitalName != null ? u.hospitalName : '-'}">-</td>
+                    <td>
+                        <span th:if="${u.enabled}" class="badge badge-success">Enabled</span>
+                        <span th:unless="${u.enabled}" class="badge badge-danger">Disabled</span>
+                    </td>
+                    <td th:text="${u.createdAt != null ? #temporals.format(u.createdAt, 'yyyy-MM-dd HH:mm') : '-'}">2026-10-07</td>
+                    <td style="text-align: center; white-space: nowrap;">
+                        <div style="display: flex; gap: 0.4rem; justify-content: center;">
+                            <!-- Toggle Status Form -->
+                            <form th:action="@{/admin/users/{id}/toggle-status(id=${u.id})}" method="post" style="display: inline; margin: 0;">
+                                <button type="submit" class="btn btn-outline" style="padding: 0.25rem 0.5rem; font-size: 0.75rem;"
+                                        th:disabled="${u.username == currentUsername}"
+                                        th:title="${u.username == currentUsername ? 'Cannot disable your own account' : 'Toggle account status'}">
+                                    <span th:text="${u.enabled ? 'Disable' : 'Enable'}">Disable</span>
+                                </button>
+                            </form>
+
+                            <!-- Reset Password Form -->
+                            <form th:action="@{/admin/users/{id}/reset-password(id=${u.id})}" method="post" style="display: inline; margin: 0;"
+                                  th:onsubmit="return confirm('Reset password for user ' + [[${u.username}]] + ' to Reset@123?');">
+                                <button type="submit" class="btn btn-secondary" style="padding: 0.25rem 0.5rem; font-size: 0.75rem;">Reset Pass</button>
+                            </form>
+
+                            <!-- Delete Form -->
+                            <form th:action="@{/admin/users/{id}/delete(id=${u.id})}" method="post" style="display: inline; margin: 0;"
+                                  th:onsubmit="return confirm('Are you sure you want to permanently delete user ' + [[${u.username}]] + '?');">
+                                <button type="submit" class="btn btn-danger" style="padding: 0.25rem 0.5rem; font-size: 0.75rem;"
+                                        th:disabled="${u.username == currentUsername}"
+                                        th:title="${u.username == currentUsername ? 'Cannot delete your own account' : 'Delete user account'}">
+                                    Delete
+                                </button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+</div>
+
+</body>
+</html>

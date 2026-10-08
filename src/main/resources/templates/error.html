@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Application Error - OrganMatch</title>
+    <link rel="stylesheet" th:href="@{/css/app.css}">
+    <style>
+        body {
+            background-color: var(--bg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+        .error-card {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 3rem 2rem;
+            max-width: 450px;
+            text-align: center;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
+        }
+        .error-icon { font-size: 3.5rem; line-height: 1; }
+        .error-title { font-size: 1.5rem; color: var(--primary); margin: 0.75rem 0 0.5rem 0; }
+        .error-desc { color: var(--text-muted); font-size: 0.95rem; margin-bottom: 2rem; }
+    </style>
+</head>
+<body>
+
+<div class="error-card">
+    <div class="error-icon">🏥</div>
+    <h2 class="error-title">An unexpected error occurred</h2>
+    <p class="error-desc" th:text="${message != null ? message : 'The system encountered an error processing your request.'}">Page or resource error.</p>
+    <a th:href="@{/dashboard}" class="btn btn-primary">Back to Dashboard</a>
+</div>
+
+</body>
+</html>

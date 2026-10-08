@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      th:replace="~{fragments/layout :: layout(~{::title}, ~{::#page-content})}">
+<head>
+    <title>Match Run History - OrganMatch</title>
+</head>
+<body>
+
+<div id="page-content">
+
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
+        <div>
+            <h2 style="margin: 0; color: var(--primary);">Matching Execution History Log</h2>
+            <p style="margin: 0; color: var(--text-muted); font-size: 0.9rem;">
+                Historical audit records of all organ allocation runs (<span th:text="${totalElements}">0</span> total runs logged)
+            </p>
+        </div>
+        <div>
+            <a th:href="@{/history/export-csv(runBy=${selectedRunBy}, algorithm=${selectedAlgorithm})}" class="btn btn-outline">
+                📥 Export CSV
+            </a>
+        </div>
+    </div>
+
+    <!-- Filter & Search Bar -->
+    <div class="card" style="padding: 1rem; margin-bottom: 1.5rem;">
+        <form th:action="@{/history}" method="get" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)) 120px 100px; gap: 0.75rem; align-items: end;">
+            <div>
+                <label for="runBy" style="font-size: 0.8rem; margin-bottom: 0.2rem;">Executed By (Username)</label>
+                <input type="text" id="runBy" name="runBy" th:value="${selectedRunBy}" placeholder="e.g. admin or coord1">
+            </div>
+            <div>
+                <label for="algorithm" style="font-size: 0.8rem; margin-bottom: 0.2rem;">Algorithm</label>
+                <select id="algorithm" name="algorithm">
+                    <option value="">All Algorithms</option>
+                    <option value="CSP" th:selected="${selectedAlgorithm == 'CSP'}">CSP Solver</option>
+                    <option value="GREEDY" th:selected="${selectedAlgorithm == 'GREEDY'}">Greedy Baseline</option>
+                    <option value="COMPARE" th:selected="${selectedAlgorithm == 'COMPARE'}">Compare</option>
+                </select>
+            </div>
+            <div>
+                <button type="submit" class="btn btn-primary" style="width: 100%;">Filter</button>
+            </div>
+            <div>
+                <a th:href="@{/history}" class="btn btn-secondary" style="width: 100%; text-align: center; box-sizing: border-box;">Reset</a>
+            </div>
+        </form>
+    </div>
+
+    <!-- History Table -->
+    <div class="card" style="padding: 0; overflow-x: auto;">
+        <table style="margin: 0; border: none;">
+            <thead>
+                <tr>
+                    <th>Run ID</th>
+                    <th>Donor ID</th>
+                    <th>Executed By</th>
+                    <th>Date & Time</th>
+                    <th>Algorithm</th>
+                    <th>Configuration Flags</th>
+                    <th>Total Utility</th>
+                    <th>Organs Status</th>
+                    <th>Time (ms)</th>
+                    <th style="text-align: center;">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:if="${#lists.isEmpty(records)}">
+                    <td colspan="10" style="text-align: center; color: var(--text-muted); padding: 2rem;">
+                        No matching run history records found.
+                    </td>
+                </tr>
+                <tr th:each="r : ${records}">
+                    <td><strong th:text="${'#' + r.id}">#1</strong></td>
+                    <td><strong th:text="${r.donorId}">D101</strong></td>
+                    <td th:text="${r.runBy}">coord1</td>
+                    <td th:text="${r.runAt != null ? #temporals.format(r.runAt, 'yyyy-MM-dd HH:mm') : '-'}">2026-10-07 06:40</td>
+                    <td>
+                        <span class="badge" th:classappend="${r.algorithm == 'COMPARE' ? 'badge-warning' : (r.algorithm == 'GREEDY' ? 'badge-info' : 'badge-success')}" th:text="${r.algorithm}">CSP</span>
+                    </td>
+                    <td style="font-size: 0.8rem; color: var(--text-muted);" th:text="${r.configFlags != null ? r.configFlags : '-'}">Node Consistency, MRV</td>
+                    <td><strong th:text="${#numbers.formatDecimal(r.totalUtility, 1, 3)}">3.182</strong></td>
+                    <td>
+                        <span class="badge badge-success" th:text="${r.organsAssigned + ' assigned'}">4 assigned</span>
+                        <span th:if="${r.organsUnassigned > 0}" class="badge badge-danger" th:text="${r.organsUnassigned + ' unassigned'}">1 unassigned</span>
+                    </td>
+                    <td th:text="${r.timeMillis + ' ms'}">12 ms</td>
+                    <td style="text-align: center;">
+                        <a th:href="@{/history/{id}(id=${r.id})}" class="btn btn-outline" style="padding: 0.25rem 0.6rem; font-size: 0.8rem;">👁️ View</a>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Pagination Controls -->
+    <div th:if="${totalPages > 1}" style="display: flex; justify-content: space-between; align-items: center; margin-top: 1rem;">
+        <div style="font-size: 0.85rem; color: var(--text-muted);">
+            Page <strong th:text="${currentPage + 1}">1</strong> of <strong th:text="${totalPages}">10</strong>
+        </div>
+        <div style="display: flex; gap: 0.5rem;">
+            <a th:if="${currentPage > 0}"
+               th:href="@{/history(page=${currentPage - 1}, runBy=${selectedRunBy}, algorithm=${selectedAlgorithm})}"
+               class="btn btn-outline" style="padding: 0.4rem 0.8rem;">&laquo; Previous</a>
+
+            <a th:if="${currentPage + 1 < totalPages}"
+               th:href="@{/history(page=${currentPage + 1}, runBy=${selectedRunBy}, algorithm=${selectedAlgorithm})}"
+               class="btn btn-outline" style="padding: 0.4rem 0.8rem;">Next &raquo;</a>
+        </div>
+    </div>
+
+</div>
+
+</body>
+</html>

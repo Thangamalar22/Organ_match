@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      th:replace="~{fragments/layout :: layout(~{::title}, ~{::#page-content})}">
+<head>
+    <title th:text="${'Match Run #' + record.id + ' Report - OrganMatch'}">Match Run Detail</title>
+    <style>
+        @media print {
+            .navbar, .footer, .btn, .no-print, nav, footer {
+                display: none !important;
+            }
+            body {
+                background: white !important;
+                color: black !important;
+            }
+            .card {
+                border: none !important;
+                box-shadow: none !important;
+                padding: 0 !important;
+                margin: 0 0 1rem 0 !important;
+            }
+            .main-content {
+                max-width: 100% !important;
+                margin: 0 !important;
+                padding: 0 !important;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div id="page-content">
+
+    <!-- Top Action Bar (hidden on print) -->
+    <div class="no-print" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+        <div>
+            <a th:href="@{/history}" class="btn btn-secondary">&laquo; Back to History Log</a>
+        </div>
+        <div>
+            <button class="btn btn-primary" onclick="window.print()">🖨️ Print Audit Report</button>
+        </div>
+    </div>
+
+    <!-- Match Record Audit Card -->
+    <div class="card">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid var(--border); padding-bottom: 1rem; margin-bottom: 1rem; flex-wrap: wrap;">
+            <div>
+                <h2 style="margin: 0; border: none;" th:text="${'Match Allocation Audit Report #' + record.id}">Match Allocation Report</h2>
+                <p style="margin: 0.25rem 0 0 0; color: var(--text-muted); font-size: 0.85rem;">
+                    Executed by <strong th:text="${record.runBy}">admin</strong> on
+                    <span th:text="${record.runAt != null ? #temporals.format(record.runAt, 'yyyy-MM-dd HH:mm:ss') : '-'}">2026-10-07</span>
+                </p>
+            </div>
+            <div style="text-align: right;">
+                <span class="badge" th:classappend="${record.algorithm == 'COMPARE' ? 'badge-warning' : (record.algorithm == 'GREEDY' ? 'badge-info' : 'badge-success')}"
+                      style="font-size: 0.9rem; padding: 0.3rem 0.6rem;" th:text="${record.algorithm}">CSP Solver</span>
+                <div style="font-size: 1.3rem; font-weight: 800; color: var(--primary); margin-top: 0.25rem;" th:text="${'Total Utility: ' + #numbers.formatDecimal(record.totalUtility, 1, 3)}">
+                    Total Utility: 3.182
+                </div>
+            </div>
+        </div>
+
+        <!-- Summary Grid -->
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 0.75rem; margin-bottom: 1.5rem;">
+            <div style="background: #f8fafc; border: 1px solid var(--border); padding: 0.75rem; border-radius: 6px;">
+                <div style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 600;">Donor ID</div>
+                <div style="font-size: 1.1rem; font-weight: 700; color: var(--primary);" th:text="${record.donorId}">D101</div>
+            </div>
+            <div style="background: #f8fafc; border: 1px solid var(--border); padding: 0.75rem; border-radius: 6px;">
+                <div style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 600;">Organs Status</div>
+                <div style="font-size: 1rem; font-weight: 700;">
+                    <span class="badge badge-success" th:text="${record.organsAssigned + ' assigned'}">4 assigned</span>
+                    <span th:if="${record.organsUnassigned > 0}" class="badge badge-danger" th:text="${record.organsUnassigned + ' unassigned'}">1 unassigned</span>
+                </div>
+            </div>
+            <div style="background: #f8fafc; border: 1px solid var(--border); padding: 0.75rem; border-radius: 6px;">
+                <div style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 600;">Nodes Expanded</div>
+                <div style="font-size: 1.1rem; font-weight: 700; color: var(--primary);" th:text="${record.nodesExpanded}">0</div>
+            </div>
+            <div style="background: #f8fafc; border: 1px solid var(--border); padding: 0.75rem; border-radius: 6px;">
+                <div style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 600;">Backtracks</div>
+                <div style="font-size: 1.1rem; font-weight: 700; color: var(--primary);" th:text="${record.backtracks}">0</div>
+            </div>
+            <div style="background: #f8fafc; border: 1px solid var(--border); padding: 0.75rem; border-radius: 6px;">
+                <div style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 600;">Time Elapsed</div>
+                <div style="font-size: 1.1rem; font-weight: 700; color: var(--primary);" th:text="${record.timeMillis + ' ms'}">12 ms</div>
+            </div>
+        </div>
+
+        <div style="margin-bottom: 1.5rem; font-size: 0.85rem; color: var(--text-muted);">
+            <strong>Config Flags:</strong> <span th:text="${record.configFlags}">Node Consistency, MRV</span>
+        </div>
+    </div>
+
+    <!-- Hidden Raw JSON Data Container -->
+    <script id="raw-json-data" type="application/json" th:utext="${resultJson}"></script>
+
+    <!-- Single Result Saved View -->
+    <div id="single-result-view" class="card">
+        <h3>Saved Allocation & Score Breakdown</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Organ Unit</th>
+                    <th>Assigned Recipient</th>
+                    <th>City</th>
+                    <th>Utility Score</th>
+                    <th>Why Chosen / Score Breakdown</th>
+                </tr>
+            </thead>
+            <tbody id="assignments-tbody">
+            </tbody>
+        </table>
+
+        <!-- Unassigned Section -->
+        <div id="unassigned-section" style="background: #fff1f2; border: 1px solid #fecdd3; border-radius: 6px; padding: 1rem; margin-top: 1.25rem; display: none;">
+            <h3 style="margin-top:0; color:#9f1239;">Unassigned Organs & Elimination Reasons</h3>
+            <div id="unassigned-content"></div>
+        </div>
+
+        <!-- Search Trace -->
+        <h3 style="margin-top: 1.5rem;">Search Trace Log</h3>
+        <div style="background: #0f172a; color: #38bdf8; font-family: monospace; font-size: 0.85rem; padding: 1rem; border-radius: 6px; max-height: 250px; overflow-y: auto; white-space: pre-wrap;" id="trace-content">Search trace log...</div>
+    </div>
+
+    <!-- Comparison Side-by-Side Saved View -->
+    <div id="compare-result-view" class="card" style="display: none;">
+        <h3>Saved Algorithm Comparison View</h3>
+        <div style="background: #e0e7ff; padding: 1rem; border-radius: 6px; margin-bottom: 1.25rem; display: flex; justify-content: space-between; font-weight: 600;">
+            <div>Utility Difference: <span id="cmp-diff" style="color: var(--primary);">+0.0</span></div>
+            <div>CSP Utility Gain: <span id="cmp-gain" style="color: var(--success);">+0.0%</span></div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+            <div>
+                <h4 style="color: var(--primary); margin-top:0;">CSP Solver (Utility: <span id="cmp-csp-utility">0.0</span>)</h4>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Organ</th>
+                            <th>Recipient</th>
+                            <th>Score</th>
+                        </tr>
+                    </thead>
+                    <tbody id="cmp-csp-tbody"></tbody>
+                </table>
+            </div>
+
+            <div>
+                <h4 style="color: #64748b; margin-top:0;">Greedy Baseline (Utility: <span id="cmp-greedy-utility">0.0</span>)</h4>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Organ</th>
+                            <th>Recipient</th>
+                            <th>Score</th>
+                        </tr>
+                    </thead>
+                    <tbody id="cmp-greedy-tbody"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script th:inline="javascript">
+        document.addEventListener("DOMContentLoaded", function() {
+            try {
+                const rawJson = document.getElementById('raw-json-data').textContent;
+                if (!rawJson) return;
+                const data = JSON.parse(rawJson);
+
+                if (data.cspResult && data.greedyResult) {
+                    renderComparisonView(data);
+                } else {
+                    renderSingleView(data);
+                }
+            } catch (e) {
+                console.error("Error parsing saved result JSON", e);
+            }
+        });
+
+        function renderSingleView(data) {
+            document.getElementById('single-result-view').style.display = 'block';
+            document.getElementById('compare-result-view').style.display = 'none';
+
+            const tbody = document.getElementById('assignments-tbody');
+            tbody.innerHTML = '';
+
+            if (data.perOrganExplanations) {
+                for (const [unitId, explanation] of Object.entries(data.perOrganExplanations)) {
+                    const tr = document.createElement('tr');
+                    const rec = explanation.chosenRecipient;
+
+                    let breakdownHtml = '';
+                    if (explanation.scoreBreakdown) {
+                        const b = explanation.scoreBreakdown;
+                        breakdownHtml = `
+                            <span class="badge badge-info">Urg: ${(b.urgencyScore || 0).toFixed(2)}</span>
+                            <span class="badge badge-info">Wait: ${(b.waitingDaysScore || 0).toFixed(2)}</span>
+                            <span class="badge badge-info">HLA: ${(b.hlaMatchScore || 0).toFixed(2)}</span>
+                            <span class="badge badge-info">Age: ${(b.ageBenefitScore || 0).toFixed(2)}</span>
+                            <span class="badge badge-info">Trsp: ${(b.transportScore || 0).toFixed(2)}</span>
+                        `;
+                    }
+
+                    tr.innerHTML = `
+                        <td><strong>${unitId}</strong></td>
+                        <td>${rec ? `${rec.name} (${rec.id}) - BG:${rec.bloodGroup}` : '<span style="color:#ef4444;">UNASSIGNED</span>'}</td>
+                        <td>${rec ? rec.city : '-'}</td>
+                        <td><strong>${explanation.utilityScore != null ? explanation.utilityScore.toFixed(3) : '0.000'}</strong></td>
+                        <td>${rec ? breakdownHtml : 'No candidate satisfied all constraints'}</td>
+                    `;
+                    tbody.appendChild(tr);
+                }
+            }
+
+            // Render Unassigned Organs
+            const unassignedSec = document.getElementById('unassigned-section');
+            const unassignedContent = document.getElementById('unassigned-content');
+            if (data.unassignedOrgans && data.unassignedOrgans.length > 0) {
+                unassignedSec.style.display = 'block';
+                unassignedContent.innerHTML = '';
+                data.unassignedOrgans.forEach(u => {
+                    const exp = data.perOrganExplanations ? data.perOrganExplanations[u.id] : null;
+                    let rejectionsHtml = '<ul>';
+                    if (exp && exp.topRejectedCandidates) {
+                        exp.topRejectedCandidates.forEach(rej => {
+                            rejectionsHtml += `<li>Rejected ${rej.recipient.id} (${rej.recipient.name}): <strong>${rej.constraintName}</strong> - ${rej.reason}</li>`;
+                        });
+                    }
+                    rejectionsHtml += '</ul>';
+
+                    unassignedContent.innerHTML += `
+                        <div style="margin-bottom:0.5rem;">
+                            <strong>${u.id} (${u.organType})</strong>: Unmatched.
+                            ${rejectionsHtml}
+                        </div>
+                    `;
+                });
+            } else {
+                unassignedSec.style.display = 'none';
+            }
+
+            // Render Search Trace Log
+            const traceBox = document.getElementById('trace-content');
+            if (data.trace && data.trace.entries) {
+                traceBox.innerText = data.trace.entries.join('\n');
+            } else {
+                traceBox.innerText = 'No trace entries recorded.';
+            }
+        }
+
+        function renderComparisonView(data) {
+            document.getElementById('compare-result-view').style.display = 'block';
+            document.getElementById('single-result-view').style.display = 'none';
+
+            document.getElementById('cmp-diff').innerText = '+' + (data.utilityDifference ? data.utilityDifference.toFixed(3) : '0.000');
+            document.getElementById('cmp-gain').innerText = '+' + (data.utilityPercentageGain ? data.utilityPercentageGain.toFixed(1) : '0.0') + '%';
+
+            document.getElementById('cmp-csp-utility').innerText = data.cspResult ? data.cspResult.totalUtility.toFixed(3) : '0.000';
+            document.getElementById('cmp-greedy-utility').innerText = data.greedyResult ? data.greedyResult.totalUtility.toFixed(3) : '0.000';
+
+            if (data.cspResult && data.cspResult.perOrganExplanations) {
+                populateCmpTable('cmp-csp-tbody', data.cspResult.perOrganExplanations);
+            }
+            if (data.greedyResult && data.greedyResult.perOrganExplanations) {
+                populateCmpTable('cmp-greedy-tbody', data.greedyResult.perOrganExplanations);
+            }
+        }
+
+        function populateCmpTable(tbodyId, explanations) {
+            const tbody = document.getElementById(tbodyId);
+            tbody.innerHTML = '';
+            for (const [unitId, exp] of Object.entries(explanations)) {
+                const tr = document.createElement('tr');
+                const rec = exp.chosenRecipient;
+                tr.innerHTML = `
+                    <td><strong>${unitId}</strong></td>
+                    <td>${rec ? `${rec.name} (${rec.bloodGroup})` : '<span style="color:#ef4444;">UNASSIGNED</span>'}</td>
+                    <td>${exp.utilityScore != null ? exp.utilityScore.toFixed(3) : '0.000'}</td>
+                `;
+                tbody.appendChild(tr);
+            }
+        }
+    </script>
+
+</div>
+
+</body>
+</html>

@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      th:replace="~{fragments/layout :: layout(~{::title}, ~{::#page-content})}">
+<head>
+    <title>Dashboard - OrganMatch</title>
+</head>
+<body>
+
+<div id="page-content">
+
+    <div style="margin-bottom: 1.5rem;">
+        <h2 style="margin: 0; color: var(--primary);">System Dashboard</h2>
+        <p style="margin: 0; color: var(--text-muted); font-size: 0.9rem;">
+            Welcome back, <span sec:authentication="name">User</span>!
+        </p>
+    </div>
+
+    <!-- ================= ADMIN & COORDINATOR DASHBOARD ================= -->
+    <div th:if="${dashboard.adminOrCoordinator}">
+        <!-- Top Metrics Grid -->
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 1.5rem;">
+            <div class="card" style="margin: 0; text-align: center;">
+                <div style="font-size: 2rem; font-weight: 800; color: var(--primary);" th:text="${dashboard.totalRecipients}">0</div>
+                <div style="font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; font-weight: 600;">Total Active Recipients</div>
+            </div>
+            <div class="card" style="margin: 0; text-align: center;">
+                <div style="font-size: 2rem; font-weight: 800; color: var(--accent);" th:text="${dashboard.totalDonors}">0</div>
+                <div style="font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; font-weight: 600;">Total Donors</div>
+            </div>
+            <div class="card" style="margin: 0; text-align: center;">
+                <div style="font-size: 2rem; font-weight: 800; color: var(--primary-hover);" th:text="${dashboard.totalMatchesRun}">0</div>
+                <div style="font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; font-weight: 600;">Total Match Runs Executed</div>
+            </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 1.5rem; margin-bottom: 1.5rem;">
+            <!-- Small Table: Recipients by Organ Type -->
+            <div class="card" style="margin: 0;">
+                <h2>Recipients by Needed Organ</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Organ Type</th>
+                            <th>Count</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="entry : ${dashboard.recipientCountByOrgan}">
+                            <td><strong th:text="${entry.key}">KIDNEY</strong></td>
+                            <td><span class="badge badge-info" th:text="${entry.value}">0</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Average Utility Comparison Card -->
+            <div class="card" style="margin: 0;">
+                <h2>Historical Algorithm Optimization Averages</h2>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-top: 1rem;">
+                    <div style="background: #eff6ff; padding: 1rem; border-radius: 6px; text-align: center;">
+                        <div style="font-size: 0.8rem; color: var(--text-muted); font-weight: 600;">AVG CSP SOLVER UTILITY</div>
+                        <div style="font-size: 1.75rem; font-weight: 800; color: var(--primary);" th:text="${dashboard.avgCspUtility}">0.0</div>
+                    </div>
+                    <div style="background: #f1f5f9; padding: 1rem; border-radius: 6px; text-align: center;">
+                        <div style="font-size: 0.8rem; color: var(--text-muted); font-weight: 600;">AVG GREEDY BASELINE UTILITY</div>
+                        <div style="font-size: 1.75rem; font-weight: 800; color: #64748b;" th:text="${dashboard.avgGreedyUtility}">0.0</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Last 5 Match Runs -->
+        <div class="card">
+            <h2>Recent Match Allocation Executions</h2>
+            <div th:if="${#lists.isEmpty(dashboard.recentMatchRuns)}" style="color: var(--text-muted); font-size: 0.9rem;">
+                No historical match runs recorded yet. Use the <a th:href="@{/match}">Run Matching</a> page to execute an allocation.
+            </div>
+
+            <table th:if="${not #lists.isEmpty(dashboard.recentMatchRuns)}">
+                <thead>
+                    <tr>
+                        <th>Run ID</th>
+                        <th>Donor ID</th>
+                        <th>Executed By</th>
+                        <th>Algorithm</th>
+                        <th>Total Utility</th>
+                        <th>Organs (Assigned / Unassigned)</th>
+                        <th>Time (ms)</th>
+                        <th>Date & Time</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="run : ${dashboard.recentMatchRuns}">
+                        <td><strong th:text="${'#' + run.id}">#1</strong></td>
+                        <td th:text="${run.donorId}">D101</td>
+                        <td th:text="${run.runBy}">coord1</td>
+                        <td><span class="badge badge-info" th:text="${run.algorithm}">CSP Solver</span></td>
+                        <td><strong th:text="${run.totalUtility}">3.182</strong></td>
+                        <td>
+                            <span class="badge badge-success" th:text="${run.organsAssigned + ' assigned'}">4 assigned</span>
+                            <span class="badge badge-warning" th:text="${run.organsUnassigned + ' unassigned'}">0 unassigned</span>
+                        </td>
+                        <td th:text="${run.timeMillis + ' ms'}">12 ms</td>
+                        <td th:text="${#temporals.format(run.runAt, 'yyyy-MM-dd HH:mm')}">2026-10-07 06:40</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- ================= HOSPITAL DASHBOARD ================= -->
+    <div th:if="${dashboard.hospital}">
+        <div style="background: #e0f2fe; border: 1px solid #bae6fd; border-radius: 8px; padding: 1.25rem; margin-bottom: 1.5rem; display: flex; justify-content: space-between; align-items: center;">
+            <div>
+                <h2 style="margin: 0; color: #0369a1; border: none;" th:text="${dashboard.hospitalName}">Hospital Portal</h2>
+                <p style="margin: 0.25rem 0 0 0; color: #075985; font-size: 0.9rem;">Hospital Management Portal & Registration</p>
+            </div>
+            <div style="display: flex; gap: 0.75rem;">
+                <a th:href="@{/recipients/new}" class="btn btn-primary">➕ Register Recipient</a>
+                <a th:href="@{/donors/new}" class="btn btn-accent">➕ Register Donor</a>
+            </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem;">
+            <div class="card" style="margin: 0; text-align: center;">
+                <div style="font-size: 2.2rem; font-weight: 800; color: var(--primary);" th:text="${dashboard.hospitalRecipientCount}">0</div>
+                <div style="font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; font-weight: 600;">Hospital Registered Recipients</div>
+            </div>
+            <div class="card" style="margin: 0; text-align: center;">
+                <div style="font-size: 2.2rem; font-weight: 800; color: var(--accent);" th:text="${dashboard.hospitalDonorCount}">0</div>
+                <div style="font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; font-weight: 600;">Hospital Registered Donors</div>
+            </div>
+        </div>
+
+        <!-- 5 Latest Entries -->
+        <div class="card">
+            <h2>Hospital Recent Registrations</h2>
+            <div th:if="${#lists.isEmpty(dashboard.hospitalRecentEntries)}" style="color: var(--text-muted); font-size: 0.9rem;">
+                No registrations found for this hospital.
+            </div>
+
+            <table th:if="${not #lists.isEmpty(dashboard.hospitalRecentEntries)}">
+                <thead>
+                    <tr>
+                        <th>Type</th>
+                        <th>ID</th>
+                        <th>Details</th>
+                        <th>City</th>
+                        <th>Registered By</th>
+                        <th>Date Registered</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="entry : ${dashboard.hospitalRecentEntries}">
+                        <td>
+                            <span class="badge" th:classappend="${entry.type == 'Recipient' ? 'badge-info' : 'badge-success'}" th:text="${entry.type}">Recipient</span>
+                        </td>
+                        <td><strong th:text="${entry.id}">R101</strong></td>
+                        <td th:text="${entry.nameOrDetails}">John Doe (KIDNEY)</td>
+                        <td th:text="${entry.city}">CHENNAI</td>
+                        <td th:text="${entry.registeredBy}">hospital1</td>
+                        <td th:text="${#temporals.format(entry.createdAt, 'yyyy-MM-dd HH:mm')}">2026-10-07 06:40</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- ================= ADMIN EXTRA SECTION ================= -->
+    <div th:if="${dashboard.admin}" style="margin-top: 1.5rem;">
+        <div class="card">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <h2 style="margin: 0; border: none;">System Administration & User Roles</h2>
+                <a th:href="@{/admin/users}" class="btn btn-outline">⚙️ Manage Users</a>
+            </div>
+
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; margin-top: 1rem;">
+                <div th:each="uRole : ${dashboard.userCountByRole}" style="background: #f8fafc; border: 1px solid var(--border); padding: 0.75rem; border-radius: 6px; text-align: center;">
+                    <div style="font-size: 1.4rem; font-weight: 700; color: var(--primary);" th:text="${uRole.value}">0</div>
+                    <div style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase;" th:text="${uRole.key + ' USERS'}">ADMIN USERS</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+</body>
+</html>
